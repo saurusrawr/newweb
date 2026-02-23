@@ -7,195 +7,141 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
       min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       color: white;
     }
     .container {
-      background: #0f0f23;
+      background: #16213e;
       padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-      width: 90%;
-      max-width: 500px;
-    }
-    h1 { text-align: center; margin-bottom: 1.5rem; color: #00d4ff; }
-    .upload-area {
-      border: 2px dashed #333;
       border-radius: 12px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 { text-align: center; color: #00d4ff; margin-bottom: 1.5rem; }
+    .dropzone {
+      border: 2px dashed #333;
+      border-radius: 8px;
       padding: 2rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: 0.2s;
     }
-    .upload-area:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
-    .upload-area.dragover { border-color: #00d4ff; background: rgba(0,212,255,0.1); }
-    input[type="file"] { display: none; }
+    .dropzone:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+    .dropzone.dragover { border-color: #00d4ff; background: rgba(0,212,255,0.1); }
     .btn {
       background: #00d4ff;
       color: #000;
-      padding: 0.75rem 2rem;
       border: none;
-      border-radius: 8px;
+      padding: 0.75rem 2rem;
+      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 1rem;
       width: 100%;
+      margin-top: 1rem;
     }
-    .btn:hover { background: #00b8e6; }
     .btn:disabled { background: #555; cursor: not-allowed; }
-    #result { margin-top: 1.5rem; display: none; }
-    #result.show { display: block; }
-    .result-box {
-      background: #1a1a2e;
+    #result {
+      margin-top: 1.5rem;
       padding: 1rem;
-      border-radius: 8px;
-      word-break: break-all;
+      background: #0f3460;
+      border-radius: 6px;
+      display: none;
     }
-    .result-box a { color: #00d4ff; text-decoration: none; }
-    .result-box a:hover { text-decoration: underline; }
+    #result.show { display: block; }
+    #result a { color: #00d4ff; word-break: break-all; }
+    .error { color: #ff6b6b; text-align: center; margin-top: 1rem; display: none; }
+    .error.show { display: block; }
     .loading { display: none; text-align: center; margin-top: 1rem; }
     .loading.show { display: block; }
-    .spinner {
-      width: 30px; height: 30px;
-      border: 3px solid #333;
-      border-top-color: #00d4ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .error { color: #ff4757; margin-top: 1rem; text-align: center; display: none; }
-    .error.show { display: block; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🦖 Uploadersaurus</h1>
-    
-    <div class="upload-area" id="dropZone">
+    <div class="dropzone" id="dropzone">
       <p>Klik atau drag file di sini</p>
-      <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem">
-        js, png, jpg, mp4, mp3, zip, dll
-      </p>
+      <small style="color: #666">js, png, jpg, mp4, mp3, zip, dll</small>
     </div>
-    <input type="file" id="fileInput">
-    
-    <button class="btn" id="uploadBtn" onclick="uploadFile()">Upload</button>
-    
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p style="margin-top: 0.5rem">Uploading...</p>
-    </div>
-    
+    <input type="file" id="fileInput" hidden>
+    <button class="btn" id="uploadBtn" onclick="upload()">Upload</button>
+    <div class="loading" id="loading">Uploading...</div>
     <div class="error" id="error"></div>
-    
     <div id="result">
-      <h3 style="margin-bottom: 0.5rem">✅ Upload Berhasil!</h3>
-      <div class="result-box">
-        <p style="color: #888; font-size: 0.8rem">URL:</p>
-        <a href="#" id="fileLink" target="_blank"></a>
-      </div>
+      <p style="color: #4ade80; margin-bottom: 0.5rem">✅ Berhasil!</p>
+      <a id="link" href="" target="_blank"></a>
     </div>
   </div>
 
   <script>
-    const dropZone = document.getElementById('dropZone');
+    const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const loading = document.getElementById('loading');
-    const error = document.getElementById('error');
-    const result = document.getElementById('result');
-    const fileLink = document.getElementById('fileLink');
+    let file = null;
 
-    let selectedFile = null;
-
-    dropZone.addEventListener('click', () => fileInput.click());
+    dropzone.onclick = () => fileInput.click();
     
-    dropZone.addEventListener('dragover', (e) => {
+    dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dragover'); };
+    dropzone.ondragleave = () => dropzone.classList.remove('dragover');
+    dropzone.ondrop = (e) => {
       e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-    
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('dragover');
-    });
-    
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        selectedFile = e.dataTransfer.files[0];
-        dropZone.querySelector('p').textContent = selectedFile.name;
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) {
+        file = e.dataTransfer.files[0];
+        dropzone.querySelector('p').textContent = file.name;
       }
-    });
+    };
 
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) {
-        selectedFile = fileInput.files[0];
-        dropZone.querySelector('p').textContent = selectedFile.name;
+    fileInput.onchange = () => {
+      if (fileInput.files[0]) {
+        file = fileInput.files[0];
+        dropzone.querySelector('p').textContent = file.name;
       }
-    });
+    };
 
-    async function uploadFile() {
-      if (!selectedFile) {
-        showError('Pilih file terlebih dahulu!');
-        return;
-      }
-
+    async function upload() {
+      if (!file) return showError('Pilih file dulu!');
+      
+      showLoading();
       hideError();
-      result.classList.remove('show');
-      loading.classList.add('show');
-      uploadBtn.disabled = true;
+      document.getElementById('result').classList.remove('show');
 
       const fd = new FormData();
-      fd.append('file', selectedFile);
+      fd.append('file', file);
 
       try {
-        // Ganti URL ini dengan domain Vercel kamu
-        const API_URL = window.location.origin;
-        
-        const res = await fetch(`${API_URL}/uploader`, {
-          method: 'POST',
-          body: fd
-        });
-
+        const res = await fetch('/uploader', { method: 'POST', body: fd });
         const data = await res.json();
 
-        if (!data.status) {
-          throw new Error(data.message || 'Upload failed');
-        }
-
-        const link = data.result.link || data.result.url;
-        fileLink.href = link;
-        fileLink.textContent = link;
-        result.classList.add('show');
+        if (!data.status) throw new Error(data.message);
         
-        // Reset
-        selectedFile = null;
-        dropZone.querySelector('p').textContent = 'Klik atau drag file di sini';
+        const link = document.getElementById('link');
+        link.href = data.result.link;
+        link.textContent = data.result.link;
+        document.getElementById('result').classList.add('show');
+        
+        file = null;
+        dropzone.querySelector('p').textContent = 'Klik atau drag file di sini';
         fileInput.value = '';
-        
-      } catch (err) {
-        showError(err.message);
+      } catch (e) {
+        showError(e.message);
       } finally {
-        loading.classList.remove('show');
-        uploadBtn.disabled = false;
+        hideLoading();
       }
     }
 
     function showError(msg) {
-      error.textContent = msg;
-      error.classList.add('show');
+      const el = document.getElementById('error');
+      el.textContent = msg;
+      el.classList.add('show');
     }
-
-    function hideError() {
-      error.classList.remove('show');
-    }
+    function hideError() { document.getElementById('error').classList.remove('show'); }
+    function showLoading() { document.getElementById('loading').classList.add('show'); document.getElementById('uploadBtn').disabled = true; }
+    function hideLoading() { document.getElementById('loading').classList.remove('show'); document.getElementById('uploadBtn').disabled = false; }
   </script>
 </body>
 </html>
