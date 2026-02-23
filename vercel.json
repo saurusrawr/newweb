@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/files/(.*)",
-      "destination": "/api/file?id=$1"
-    }
-  ]
-}
