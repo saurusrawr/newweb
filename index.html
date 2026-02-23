@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #111, #1e1e1e);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.progress-box {
+  background: #333;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.progress-bar {
+  width: 30%;
+  height: 20px;
+  background: #ff69b4;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  transition: width 0.5s;
+}
+
+.time {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #bbb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🚧 Website Sedang Maintenance</h1>
+  <p>Sedang dalam proses pengembangan...</p>
+
+  <div class="progress-box">
+    <div class="progress-bar">30%</div>
+  </div>
+
+  <div class="time">
+    Jam sekarang: <span id="clock">17:06</span>
+  </div>
+</div>
+
+<script>
+function updateClock() {
+  var now = new Date();
+  var hours = now.getHours().toString().padStart(2, '0');
+  var minutes = now.getMinutes().toString().padStart(2, '0');
+  document.getElementById("clock").innerText = hours + ":" + minutes;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+
+</body>
+</html>
