@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/files/(.*)",
-      "destination": "/api/files"
+      "destination": "/api/file?id=$1"
     }
   ]
 }
