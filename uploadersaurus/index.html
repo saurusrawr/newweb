@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uploadersaurus</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    .container {
+      background: #0f0f23;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 500px;
+    }
+    h1 { text-align: center; margin-bottom: 1.5rem; color: #00d4ff; }
+    .upload-area {
+      border: 2px dashed #333;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .upload-area:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+    .upload-area.dragover { border-color: #00d4ff; background: rgba(0,212,255,0.1); }
+    input[type="file"] { display: none; }
+    .btn {
+      background: #00d4ff;
+      color: #000;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .btn:hover { background: #00b8e6; }
+    .btn:disabled { background: #555; cursor: not-allowed; }
+    #result { margin-top: 1.5rem; display: none; }
+    #result.show { display: block; }
+    .result-box {
+      background: #1a1a2e;
+      padding: 1rem;
+      border-radius: 8px;
+      word-break: break-all;
+    }
+    .result-box a { color: #00d4ff; text-decoration: none; }
+    .result-box a:hover { text-decoration: underline; }
+    .loading { display: none; text-align: center; margin-top: 1rem; }
+    .loading.show { display: block; }
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid #333;
+      border-top-color: #00d4ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { color: #ff4757; margin-top: 1rem; text-align: center; display: none; }
+    .error.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🦖 Uploadersaurus</h1>
+    
+    <div class="upload-area" id="dropZone">
+      <p>Klik atau drag file di sini</p>
+      <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem">
+        js, png, jpg, mp4, mp3, zip, dll
+      </p>
+    </div>
+    <input type="file" id="fileInput">
+    
+    <button class="btn" id="uploadBtn" onclick="uploadFile()">Upload</button>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 0.5rem">Uploading...</p>
+    </div>
+    
+    <div class="error" id="error"></div>
+    
+    <div id="result">
+      <h3 style="margin-bottom: 0.5rem">✅ Upload Berhasil!</h3>
+      <div class="result-box">
+        <p style="color: #888; font-size: 0.8rem">URL:</p>
+        <a href="#" id="fileLink" target="_blank"></a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const result = document.getElementById('result');
+    const fileLink = document.getElementById('fileLink');
+
+    let selectedFile = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        selectedFile = e.dataTransfer.files[0];
+        dropZone.querySelector('p').textContent = selectedFile.name;
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        selectedFile = fileInput.files[0];
+        dropZone.querySelector('p').textContent = selectedFile.name;
+      }
+    });
+
+    async function uploadFile() {
+      if (!selectedFile) {
+        showError('Pilih file terlebih dahulu!');
+        return;
+      }
+
+      hideError();
+      result.classList.remove('show');
+      loading.classList.add('show');
+      uploadBtn.disabled = true;
+
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+
+      try {
+        // Ganti URL ini dengan domain Vercel kamu
+        const API_URL = window.location.origin;
+        
+        const res = await fetch(`${API_URL}/uploader`, {
+          method: 'POST',
+          body: fd
+        });
+
+        const data = await res.json();
+
+        if (!data.status) {
+          throw new Error(data.message || 'Upload failed');
+        }
+
+        const link = data.result.link || data.result.url;
+        fileLink.href = link;
+        fileLink.textContent = link;
+        result.classList.add('show');
+        
+        // Reset
+        selectedFile = null;
+        dropZone.querySelector('p').textContent = 'Klik atau drag file di sini';
+        fileInput.value = '';
+        
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        loading.classList.remove('show');
+        uploadBtn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      error.textContent = msg;
+      error.classList.add('show');
+    }
+
+    function hideError() {
+      error.classList.remove('show');
+    }
+  </script>
+</body>
+</html>
