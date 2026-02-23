@@ -1,9 +1,0 @@
-{
-  "name": "uploadersaurus",
-  "dependencies": {
-    "formidable": "^3.5.1"
-  },
-  "engines": {
-    "node": "18.x"
-  }
-}
