@@ -1,17 +1,9 @@
 {
   "name": "uploadersaurus",
-  "version": "1.0.0",
-  "description": "Simple file uploader API",
-  "main": "index.js",
-  "scripts": {
-    "dev": "node api/uploader.js"
-  },
   "dependencies": {
     "formidable": "^3.5.1"
   },
   "engines": {
     "node": "18.x"
-  },
-  "keywords": ["uploader", "api", "vercel"],
-  "license": "MIT"
+  }
 }
