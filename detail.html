@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drama Detail | ReusPlay+</title>
+    <meta name="description" content="Tonton drama di ReusPlay+">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="header header--transparent" id="header">
+        <div class="header__inner">
+            <a href="index.html" class="header__logo">ReusPlay+</a>
+            <nav class="header__nav">
+                <a href="index.html" class="header__nav-link">Home</a>
+                <a href="search.html" class="header__nav-link">Explore</a>
+                <a href="mylist.html" class="header__nav-link">My List</a>
+            </nav>
+            <div class="header__actions">
+                <a href="search.html" class="header__icon-btn" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="detail-hero">
+        <div class="detail-hero__background">
+            <img src="" alt="" class="detail-hero__image" id="heroBg">
+            <div class="detail-hero__overlay"></div>
+        </div>
+    </section>
+
+    <main class="detail-content">
+        <div class="container">
+            <div class="detail-layout">
+                <aside class="detail-poster">
+                    <img src="" alt="" class="detail-poster__image" id="posterImg">
+                </aside>
+
+                <div class="detail-info">
+                    <h1 class="detail-info__title text-display" id="dramaTitle">Loading...</h1>
+
+                    <div class="detail-info__meta" id="dramaMeta"></div>
+
+                    <div class="tags" id="dramaTags" style="margin-bottom: var(--space-xl);"></div>
+
+                    <div class="detail-info__actions">
+                        <a href="#" class="btn btn--primary" id="playBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Tonton Sekarang
+                        </a>
+                        <button class="btn btn--outline" id="bookmarkBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                            </svg>
+                            My List
+                        </button>
+                    </div>
+
+                    <div class="detail-info__synopsis">
+                        <h3 class="detail-info__synopsis-title">Synopsis</h3>
+                        <p class="detail-info__synopsis-text" id="dramaSynopsis"></p>
+                    </div>
+                </div>
+            </div>
+
+            <section class="detail-episodes">
+                <div class="detail-episodes__header">
+                    <h2 class="detail-episodes__title">Episodes</h2>
+                    <span class="detail-episodes__count" id="episodeCount"></span>
+                </div>
+                <div class="episode-list" id="episodeList">
+                    <div style="padding: var(--space-lg); text-align: center;">
+                        <p style="color: var(--text-muted);">Memuat episode...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__inner">
+                <a href="index.html" class="footer__logo">ReusPlay+</a>
+                <p class="footer__copyright">© 2024 ReusPlay+</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentDrama = null;
+        let episodes = [];
+
+        async function loadDramaDetail() {
+            const params = new URLSearchParams(window.location.search);
+            const bookId = params.get('id');
+
+            if (!bookId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                // Fetch drama detail
+                const drama = await DramaAPI.getDetail(bookId);
+
+                if (!drama) {
+                    // Try to find in trending or latest
+                    const [trending, latest] = await Promise.all([
+                        DramaAPI.getTrending(),
+                        DramaAPI.getLatest()
+                    ]);
+
+                    const found = [...trending, ...latest].find(d => d.bookId === bookId);
+                    if (found) {
+                        currentDrama = found;
+                        renderDramaDetail(found);
+                    } else {
+                        document.getElementById('dramaTitle').textContent = 'Drama tidak ditemukan';
+                        return;
+                    }
+                } else {
+                    currentDrama = drama;
+                    renderDramaDetail(drama);
+                }
+
+                // Fetch all episodes with streaming URLs
+                loadEpisodes(bookId);
+
+            } catch (error) {
+                console.error('Error loading drama:', error);
+                document.getElementById('dramaTitle').textContent = 'Error loading drama';
+            }
+        }
+
+        async function loadEpisodes(bookId) {
+            try {
+                episodes = await DramaAPI.getAllEpisodes(bookId);
+                renderEpisodes(episodes);
+            } catch (error) {
+                console.error('Error loading episodes:', error);
+                document.getElementById('episodeList').innerHTML =
+                    '<p style="color: var(--text-muted); padding: var(--space-lg);">Gagal memuat episode.</p>';
+            }
+        }
+
+        function renderDramaDetail(drama) {
+            document.title = `${drama.bookName} | ReusPlay+`;
+
+            document.getElementById('heroBg').src = drama.coverWap;
+            document.getElementById('posterImg').src = drama.coverWap;
+            document.getElementById('posterImg').alt = drama.bookName;
+            document.getElementById('dramaTitle').textContent = drama.bookName;
+            document.getElementById('dramaSynopsis').textContent = drama.introduction || 'Tidak ada sinopsis.';
+
+            // Meta
+            const episodeCount = drama.chapterCount || '?';
+            const hotCode = drama.rankVo?.hotCode || '';
+            document.getElementById('dramaMeta').innerHTML = `
+        ${hotCode ? `<span class="detail-info__rating">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z"/></svg>
+          ${hotCode}
+        </span>` : ''}
+        <span>${episodeCount} Episodes</span>
+      `;
+
+            // Tags
+            if (drama.tags && drama.tags.length > 0) {
+                document.getElementById('dramaTags').innerHTML =
+                    drama.tags.slice(0, 5).map(t => `<span class="tag">${t}</span>`).join('');
+            }
+
+            document.getElementById('episodeCount').textContent = `${episodeCount} Episodes`;
+
+            // Play button
+            document.getElementById('playBtn').href = `player.html?id=${drama.bookId}&ep=0`;
+
+            // Bookmark functionality
+            setupBookmark(drama);
+        }
+
+        function renderEpisodes(episodes) {
+            if (!episodes || episodes.length === 0) {
+                document.getElementById('episodeList').innerHTML =
+                    '<p style="color: var(--text-muted); padding: var(--space-lg);">Tidak ada episode.</p>';
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const bookId = params.get('id');
+
+            document.getElementById('episodeList').innerHTML = episodes.map((ep, index) => `
+        <a href="player.html?id=${bookId}&ep=${ep.chapterIndex}" class="episode-item ${index === 0 ? 'episode-item--active' : ''}">
+          <div class="episode-item__thumb">
+            <img src="${ep.chapterImg || ''}" alt="${ep.chapterName}" loading="lazy">
+            ${ep.isCharge ? '<span class="episode-item__lock">🔒</span>' : ''}
+          </div>
+          <div class="episode-item__info">
+            <h4 class="episode-item__title">${ep.chapterName}</h4>
+            <div class="episode-item__meta">
+              <span>${ep.chargeChapter ? 'VIP' : 'Gratis'}</span>
+            </div>
+          </div>
+        </a>
+      `).join('');
+        }
+
+        function setupBookmark(drama) {
+            const bookmarkBtn = document.getElementById('bookmarkBtn');
+            const myList = JSON.parse(localStorage.getItem('reusplay_mylist') || '[]');
+            const isBookmarked = myList.some(d => d.bookId === drama.bookId);
+            updateBookmarkBtn(isBookmarked);
+
+            bookmarkBtn.addEventListener('click', () => {
+                let list = JSON.parse(localStorage.getItem('reusplay_mylist') || '[]');
+                const exists = list.some(d => d.bookId === drama.bookId);
+
+                if (exists) {
+                    list = list.filter(d => d.bookId !== drama.bookId);
+                    updateBookmarkBtn(false);
+                } else {
+                    list.push({
+                        bookId: drama.bookId,
+                        bookName: drama.bookName,
+                        coverWap: drama.coverWap,
+                        chapterCount: drama.chapterCount,
+                        tags: drama.tags
+                    });
+                    updateBookmarkBtn(true);
+                }
+
+                localStorage.setItem('reusplay_mylist', JSON.stringify(list));
+            });
+        }
+
+        function updateBookmarkBtn(isBookmarked) {
+            const btn = document.getElementById('bookmarkBtn');
+            if (isBookmarked) {
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z" clip-rule="evenodd"/></svg> Tersimpan`;
+                btn.style.borderColor = 'var(--accent-gold)';
+                btn.style.color = 'var(--accent-gold)';
+            } else {
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg> My List`;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDramaDetail);
+    </script>
+</body>
+
+</html>

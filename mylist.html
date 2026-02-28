@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My List | reusPlay+</title>
+    <meta name="description" content="Koleksi drama favorit kamu di reusPlay+">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="header header--solid" id="header">
+        <div class="header__inner">
+            <a href="index.html" class="header__logo">reusPlay+</a>
+            <nav class="header__nav">
+                <a href="index.html" class="header__nav-link">Home</a>
+                <a href="search.html" class="header__nav-link">Explore</a>
+                <a href="mylist.html" class="header__nav-link header__nav-link--active">My List</a>
+            </nav>
+            <div class="header__actions">
+                <a href="search.html" class="header__icon-btn" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="mylist-page">
+        <div class="container">
+            <div class="mylist-header">
+                <h1 class="mylist-header__title">My List</h1>
+                <p class="mylist-header__count" id="listCount"></p>
+            </div>
+
+            <div class="cards-grid" id="myListGrid"></div>
+
+            <div class="mylist-empty" id="emptyState" style="display:none;">
+                <svg class="mylist-empty__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                </svg>
+                <h3 class="mylist-empty__title">Belum Ada Drama Tersimpan</h3>
+                <p class="mylist-empty__text">Simpan drama favoritmu untuk ditonton nanti</p>
+                <a href="search.html" class="btn btn--primary" style="margin-top:var(--space-lg);">Jelajahi Drama</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__inner">
+                <a href="index.html" class="footer__logo">reusPlay+</a>
+                <p class="footer__copyright">© 2024 reusPlay+</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        function loadMyList() {
+            const myList = JSON.parse(localStorage.getItem('reusplay_mylist') || '[]');
+            const grid = document.getElementById('myListGrid');
+            const emptyState = document.getElementById('emptyState');
+            const listCount = document.getElementById('listCount');
+
+            if (myList.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                listCount.textContent = '';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+            listCount.textContent = `${myList.length} drama tersimpan`;
+
+            grid.innerHTML = myList.map(drama => `
+        <article class="drama-card" style="position: relative;">
+          <button class="remove-btn" onclick="removeDrama('${drama.bookId}', event)" style="
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+          " onmouseover="this.style.color='#ff4444'; this.style.background='rgba(255,68,68,0.2)'" onmouseout="this.style.color='var(--text-secondary)'; this.style.background='rgba(0,0,0,0.7)'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+          <div class="drama-card__poster" onclick="window.location.href='detail.html?id=${drama.bookId}'">
+            <span class="drama-card__badge" style="background:var(--accent-gold);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="12" height="12"><path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l5-3.5L13 18V4a2 2 0 00-2-2H5z" clip-rule="evenodd"/></svg>
+            </span>
+            <img src="${drama.coverWap}" alt="${drama.bookName}" class="drama-card__image" loading="lazy">
+            <div class="drama-card__play">
+              <span class="drama-card__play-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd"/></svg>
+              </span>
+            </div>
+          </div>
+          <div class="drama-card__info" onclick="window.location.href='detail.html?id=${drama.bookId}'">
+            <h3 class="drama-card__title">${drama.bookName}</h3>
+            <p class="drama-card__meta">${drama.chapterCount || '?'} Eps${drama.tags ? ' • ' + drama.tags[0] : ''}</p>
+          </div>
+        </article>
+      `).join('');
+        }
+
+        function removeDrama(bookId, event) {
+            event.stopPropagation();
+            let myList = JSON.parse(localStorage.getItem('reusplay_mylist') || '[]');
+            myList = myList.filter(d => d.bookId !== bookId);
+            localStorage.setItem('reusplay_mylist', JSON.stringify(myList));
+            loadMyList();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMyList);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore | reusPlay+</title>
+    <meta name="description" content="Jelajahi drama Indonesia favorit kamu di reusPlay+">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            font-size: .875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .tab:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .tab--active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        .search-results-title {
+            margin-bottom: var(--space-lg);
+            color: var(--text-muted);
+            font-size: .875rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header header--solid" id="header">
+        <div class="header__inner">
+            <a href="index.html" class="header__logo">reusPlay+</a>
+            <nav class="header__nav">
+                <a href="index.html" class="header__nav-link">Home</a>
+                <a href="search.html" class="header__nav-link header__nav-link--active">Explore</a>
+                <a href="mylist.html" class="header__nav-link">My List</a>
+            </nav>
+            <div class="header__actions">
+                <button class="header__icon-btn header__menu-btn" aria-label="Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="search-page">
+        <div class="container">
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <span class="search-bar__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </span>
+                <input type="text" class="search-bar__input" id="searchInput" placeholder="Cari drama...">
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs" id="tabs">
+                <button class="tab tab--active" data-tab="trending">🔥 Trending</button>
+                <button class="tab" data-tab="latest">🆕 Terbaru</button>
+                <button class="tab" data-tab="popular">🔍 Pencarian Populer</button>
+            </div>
+
+            <!-- Results Title -->
+            <div class="search-results-title" id="resultsTitle" style="display:none;"></div>
+
+            <!-- Results -->
+            <div class="cards-grid" id="resultsGrid"></div>
+
+            <!-- Empty State -->
+            <div class="search-empty" id="emptyState" style="display: none;">
+                <svg class="search-empty__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <h3 class="search-empty__title">Tidak Ditemukan</h3>
+                <p class="search-empty__text">Coba kata kunci lain</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__inner">
+                <a href="index.html" class="footer__logo">reusPlay+</a>
+                <p class="footer__copyright">© 2024 reusPlay+. Powered by Saurus.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentTab = 'trending';
+        let isSearching = false;
+
+        const resultsGrid = document.getElementById('resultsGrid');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const resultsTitle = document.getElementById('resultsTitle');
+
+        async function init() {
+            // Check URL params for initial tab
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            if (tab && ['trending', 'latest', 'popular'].includes(tab)) {
+                currentTab = tab;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+                document.querySelector(`.tab[data-tab="${tab}"]`)?.classList.add('tab--active');
+            }
+            await loadDramas();
+        }
+
+        async function loadDramas() {
+            resultsGrid.innerHTML = createSkeletonCards(12);
+            emptyState.style.display = 'none';
+            resultsTitle.style.display = 'none';
+
+            try {
+                let dramas = [];
+
+                if (currentTab === 'trending') {
+                    dramas = await DramaAPI.getTrending();
+                } else if (currentTab === 'latest') {
+                    dramas = await DramaAPI.getLatest();
+                } else if (currentTab === 'popular') {
+                    dramas = await DramaAPI.getPopularSearch();
+                }
+
+                renderDramas(dramas);
+
+            } catch (error) {
+                console.error('Error loading dramas:', error);
+                resultsGrid.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">Gagal memuat data.</p>';
+            }
+        }
+
+        async function searchDramas(query) {
+            if (!query.trim()) {
+                isSearching = false;
+                await loadDramas();
+                return;
+            }
+
+            isSearching = true;
+            resultsGrid.innerHTML = createSkeletonCards(12);
+            emptyState.style.display = 'none';
+
+            resultsTitle.style.display = 'block';
+            resultsTitle.textContent = `Hasil pencarian untuk "${query}"`;
+
+            // Deactivate tabs when searching
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+
+            try {
+                const dramas = await DramaAPI.search(query);
+                renderDramas(dramas);
+            } catch (error) {
+                console.error('Error searching:', error);
+                resultsGrid.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">Gagal mencari.</p>';
+            }
+        }
+
+        function renderDramas(dramas) {
+            if (!dramas || dramas.length === 0) {
+                resultsGrid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Map search results which have slightly different structure
+            const cards = dramas.map((d, i) => {
+                // Handle search results (different structure)
+                if (d.cover && !d.coverWap) {
+                    d.coverWap = d.cover;
+                }
+                if (d.tagNames && !d.tags) {
+                    d.tags = d.tagNames;
+                }
+                return createDramaCard(d, currentTab === 'trending' && !isSearching ? i + 1 : null);
+            });
+
+            resultsGrid.innerHTML = cards.join('');
+        }
+
+        // Tab click handlers
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', async () => {
+                isSearching = false;
+                searchInput.value = '';
+                resultsTitle.style.display = 'none';
+
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+                tab.classList.add('tab--active');
+                currentTab = tab.dataset.tab;
+
+                // Update URL
+                const url = new URL(window.location);
+                url.searchParams.set('tab', currentTab);
+                window.history.replaceState({}, '', url);
+
+                await loadDramas();
+            });
+        });
+
+        // Search
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchDramas(e.target.value);
+            }, 500);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                searchDramas(e.target.value);
+            }
+        });
+
+        // Run
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

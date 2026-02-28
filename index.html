@@ -1,127 +1,190 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading System...</title>
-    <style>
-        /* Tampilan Default (Akan muncul jika ada masalah) */
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
-            text-align: center;
-        }
-
-        /* Iframe (Tampilan Web Asli) */
-        #webview-frame {
-            display: none; /* Defaultnya disembunyikan */
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
-        /* Loading / Maintenance Text */
-        #status-screen {
-            padding: 20px;
-            border: 1px solid #ccc;
-            background: white;
-            max-width: 600px;
-            margin: 50px auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .error { color: red; font-weight: bold; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>reusPlay+ | Streaming Drama Indonesia Terbaik</title>
+  <meta name="description"
+    content="Tonton drama Indonesia terbaik dengan kualitas HD. Koleksi lengkap drama romantis, aklas, dan modern.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-
-    <!-- 1. Layar Status (Loading / Maintenance / Error) -->
-    <div id="status-screen">
-        <div class="loader" id="loader"></div>
-        <h2 id="title">Memuat Konfigurasi...</h2>
-        <p id="message">Mohon tunggu sebentar.</p>
+  <header class="header header--transparent" id="header">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">reusPlay+</a>
+      <nav class="header__nav">
+        <a href="index.html" class="header__nav-link header__nav-link--active">Home</a>
+        <a href="search.html" class="header__nav-link">Explore</a>
+        <a href="mylist.html" class="header__nav-link">My List</a>
+      </nav>
+      <div class="header__actions">
+        <a href="search.html" class="header__icon-btn" aria-label="Search">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </a>
+        <button class="header__icon-btn header__menu-btn" aria-label="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- 2. Layar Web Asli (Iframe) -->
-    <iframe id="webview-frame"></iframe>
+  <section class="hero" id="heroSection"
+    style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f0f 100%);">
+    <div class="hero__background">
+      <img src="" alt="Drama Cover" class="hero__image" id="heroImage" style="display:none;"
+        onload="this.style.display='block'" onerror="this.style.display='none'">
+      <div class="hero__overlay"></div>
+    </div>
+    <div class="hero__content container">
+      <span class="hero__badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+        </svg>
+        <span id="heroBadge">Trending</span>
+      </span>
+      <h1 class="hero__title" id="heroTitle">Memuat Drama...</h1>
+      <div class="hero__meta" id="heroMeta"></div>
+      <p class="hero__description" id="heroDesc"></p>
+      <div class="hero__actions">
+        <a href="#" class="btn btn--primary" id="heroPlayBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+              clip-rule="evenodd" />
+          </svg>
+          Play Now
+        </a>
+        <a href="#" class="btn btn--outline" id="heroDetailBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          Detail
+        </a>
+      </div>
+    </div>
+  </section>
 
-    <script>
-        // --- KONFIGURASI ---
-        const JSON_URL = "https://raw.githubusercontent.com/saurusrawr/saurusdb/main/tokensdb.json";
-        
-        const ui = {
-            screen: document.getElementById('status-screen'),
-            frame: document.getElementById('webview-frame'),
-            title: document.getElementById('title'),
-            msg: document.getElementById('message'),
-            loader: document.getElementById('loader')
-        };
 
-        // Fungsi Tampilkan Maintenance / Error
-        function showStatus(title, msg, isError = false) {
-            ui.frame.style.display = 'none';
-            ui.screen.style.display = 'block';
-            ui.title.innerText = title;
-            ui.title.className = isError ? 'error' : '';
-            ui.msg.innerText = msg;
-            ui.loader.style.display = 'none'; // Hilangkan loader
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🔥 Trending</h2>
+        <a href="search.html?tab=trending" class="section-link">Lihat Semua</a>
+      </div>
+      <div class="cards-scroll" id="trendingGrid"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🆕 Terbaru</h2>
+        <a href="search.html?tab=latest" class="section-link">Lihat Semua</a>
+      </div>
+      <div class="cards-scroll" id="latestGrid"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🔍 Pencarian Populer</h2>
+        <a href="search.html" class="section-link">Lihat Semua</a>
+      </div>
+      <div class="cards-grid" id="popularGrid"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <a href="index.html" class="footer__logo">reusPlay+</a>
+        <nav class="footer__links">
+          <a href="#" class="footer__link">About</a>
+          <a href="#" class="footer__link">Terms of Service</a>
+          <a href="#" class="footer__link">Privacy Policy</a>
+          <a href="#" class="footer__link">Contact</a>
+        </nav>
+        <p class="footer__copyright">© 2024 reusPlay+. Powered by Saurus.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    async function initHomePage() {
+      // Show loading skeletons
+      document.getElementById('trendingGrid').innerHTML = createSkeletonCards(7);
+      document.getElementById('latestGrid').innerHTML = createSkeletonCards(7);
+      document.getElementById('popularGrid').innerHTML = createSkeletonCards(6);
+
+      try {
+        // Fetch all data in parallel
+        const [trending, latest, popular] = await Promise.all([
+          DramaAPI.getTrending(),
+          DramaAPI.getLatest(),
+          DramaAPI.getPopularSearch()
+        ]);
+
+        // Set Hero from first trending drama
+        if (trending && trending.length > 0) {
+          const hero = trending[0];
+          document.getElementById('heroImage').src = hero.coverWap;
+          document.getElementById('heroTitle').textContent = hero.bookName;
+          document.getElementById('heroDesc').textContent = hero.introduction || '';
+          document.getElementById('heroBadge').textContent = hero.rankVo?.hotCode || 'Trending';
+          document.getElementById('heroMeta').innerHTML = `
+            <span>${hero.chapterCount || '?'} Episodes</span>
+            <span class="hero__meta-divider"></span>
+            <span>${hero.tags ? hero.tags[0] : 'Drama'}</span>
+          `;
+          document.getElementById('heroPlayBtn').href = `player.html?id=${hero.bookId}`;
+          document.getElementById('heroDetailBtn').href = `detail.html?id=${hero.bookId}`;
         }
 
-        // Fungsi Load Web
-        function loadWeb(url) {
-            ui.frame.style.display = 'block';
-            ui.screen.style.display = 'none';
-            ui.frame.src = url;
-
-            // Deteksi jika web gagal dimuat (kosong/blank) dalam 5 detik
-            setTimeout(() => {
-                try {
-                    // Cek apakah iframe kosong (berarti error karena weblock iframe)
-                    if (!ui.frame.contentWindow || ui.frame.contentWindow.length === 0) {
-                        // Biasa terjadi jika web target blokir iframe
-                        showStatus("GAGAL MEMUAT", "Web target memblokir tampilan (X-Frame-Options) atau sedang offline.", true);
-                    }
-                } catch (e) {
-                    // Cross-origin error, biarkan saja (biasanya web berjalan di latar)
-                }
-            }, 4000);
+        // Populate Trending (skip first as it's hero)
+        if (trending && trending.length > 1) {
+          const trendingCards = trending.slice(1, 8);
+          document.getElementById('trendingGrid').innerHTML =
+            trendingCards.map((d, i) => createDramaCard(d, i + 1)).join('');
         }
 
-        // --- EKSEKUSI UTAMA ---
-        fetch(JSON_URL)
-            .then(response => {
-                if (!response.ok) throw new Error("File JSON tidak ditemukan");
-                return response.json();
-            })
-            .then(data => {
-                const url = data.panel_url;
-                const secret = data.secret; // Dicek dikit ya, tapi tidak dipakai
+        // Populate Latest
+        if (latest && latest.length > 0) {
+          document.getElementById('latestGrid').innerHTML =
+            latest.slice(0, 7).map(d => createDramaCard(d)).join('');
+        }
 
-                console.log("Data Diterima:", url);
+        // Populate Popular Search
+        if (popular && popular.length > 0) {
+          document.getElementById('popularGrid').innerHTML =
+            popular.slice(0, 6).map(d => createDramaCard(d)).join('');
+        }
 
-                // CEK 1: Apakah URL "-" ?
-                if (!url || url === "-" || url.trim() === "") {
-                    showStatus("MAINTENANCE", "Server sedang dalam perawatan.");
-                    return;
-                }
+      } catch (error) {
+        console.error('Error loading homepage:', error);
+        document.getElementById('trendingGrid').innerHTML = '<p style="color: var(--text-muted);">Gagal memuat data. Silakan refresh halaman.</p>';
+      }
+    }
 
-                // CEK 2: Load Web
-                loadWeb(url);
-            })
-            .catch(error => {
-                console.error(error);
-                // Error bisa karena CORS (Local file) atau Internet
-                showStatus("GAGAL KONEKSI", "Tidak bisa mengambil data konfigurasi. Pastikan Anda membuka ini via Server/Hosting, bukan klik langsung file (file://). Error: " + error.message, true);
-            });
-    </script>
+    document.addEventListener('DOMContentLoaded', initHomePage);
+  </script>
 </body>
+
 </html>
